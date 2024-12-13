@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .scoreboard {
+            text-align: center;
+            padding: 20px;
+            border: 5px solid red;
+            border-radius: 15px;
+            width: 400px;
+            background-color: #111;
+        }
+        .scoreboard-header {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #ff6347; /* Tomato color */
+        }
+        .time {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .team {
+            flex: 1;
+            text-align: center;
+        }
+        .team-name {
+            font-size: 2rem;
+        }
+        .score {
+            font-size: 3rem;
+            margin: 10px 0;
+            color: #ff0000;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .control-buttons {
+            margin-top: 20px;
+        }
+        .control-buttons button {
+            background-color: #ff4b5c;
+        }
+        .control-buttons button:hover {
+            background-color: #d90429;
+        }
+        .set-controls {
+            margin-top: 20px;
+        }
+        .set-controls button {
+            background-color: #28a745;
+        }
+        .set-controls button:hover {
+            background-color: #218838;
+        }
+        .set-count {
+            margin-top: 20px;
+        }
+        .team-name input {
+            font-size: 1.2rem;
+            padding: 5px;
+            text-align: center;
+            width: 80%;
+        }
+
+        /* ปรับปุ่ม "รีเซต Scoreboard" ให้เป็นทรงกลมสีเหลือง */
+        .reset-scoreboard {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px; /* เพิ่มระยะห่างด้านบน */
+        }
+
+        .reset-scoreboard button {
+            background-color: yellow;  /* สีพื้นหลังเป็นสีเหลือง */
+            color: black;  /* สีข้อความเป็นสีดำ */
+            border-radius: 50%;  /* ทำให้ปุ่มกลายเป็นทรงกลม */
+            width: 60px;  /* ขนาดความกว้างของปุ่ม */
+            height: 60px;  /* ขนาดความสูงของปุ่ม */
+            font-size: 1.0rem;  /* ขนาดฟอนต์ */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .reset-scoreboard button:hover {
+            background-color: #f1c40f;  /* เปลี่ยนสีพื้นหลังเมื่อวางเมาส์เหนือปุ่ม */
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard">
+        <div class="scoreboard-header">กีฬาเซปักตะกร้อ</div>
+        <div class="time" id="time">00:00</div>
+        <div class="teams">
+            <div class="team" id="home">
+                <div class="team-name">
+                    <input type="text" id="home-name" placeholder="ชื่อทีมที่ 1" />
+                </div>
+                <div class="score" id="score-home">0</div>
+                <div class="buttons">
+                    <button onclick="updateScore('home', 1)">+</button>
+                    <button onclick="updateScore('home', -1)">-</button>
+                </div>
+                <div class="set-wins">
+                    <p>จำนวนเซต: <span id="sets-home">0</span></p>
+                    <button onclick="incrementSet('home')">เซตที่ชนะ</button>
+                </div>
+            </div>
+            <div class="team" id="away">
+                <div class="team-name">
+                    <input type="text" id="away-name" placeholder="ชื่อทีมที่ 2" />
+                </div>
+                <div class="score" id="score-away">0</div>
+                <div class="buttons">
+                    <button onclick="updateScore('away', 1)">+</button>
+                    <button onclick="updateScore('away', -1)">-</button>
+                </div>
+                <div class="set-wins">
+                    <p>จำนวนเซต: <span id="sets-away">0</span></p>
+                    <button onclick="incrementSet('away')">เซตที่ชนะ</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-buttons">
+            <button onclick="startTimer()">START</button>
+            <button onclick="stopTimer()">STOP</button>
+            <button onclick="resetTimer()">RESET</button>
+        </div>
+        
+        <!-- ปุ่มใหม่สำหรับรีเซตข้อมูลทั้งหมด -->
+        <div class="reset-scoreboard">
+            <button onclick="resetScoreboard()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        let homeScore = 0;
+        let awayScore = 0;
+        let homeSets = 0; // จำนวนเซตที่ชนะของทีม Home
+        let awaySets = 0; // จำนวนเซตที่ชนะของทีม Away
+        let timerInterval;
+        let seconds = 0;
+
+        function updateScore(team, value) {
+            if (team === 'home') {
+                homeScore = Math.max(0, homeScore + value);
+                document.getElementById('score-home').textContent = homeScore;
+            } else if (team === 'away') {
+                awayScore = Math.max(0, awayScore + value);
+                document.getElementById('score-away').textContent = awayScore;
+            }
+        }
+
+        function incrementSet(team) {
+            if (team === 'home') {
+                homeSets++;
+                document.getElementById('sets-home').textContent = homeSets;
+            } else if (team === 'away') {
+                awaySets++;
+                document.getElementById('sets-away').textContent = awaySets;
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) return; // Prevent multiple intervals
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            stopTimer();
+            seconds = 0;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const sec = String(seconds % 60).padStart(2, '0');
+            document.getElementById('time').textContent = `${minutes}:${sec}`;
+        }
+
+        // ฟังก์ชันเพื่อดึงชื่อทีมจาก input
+        function getTeamName(team) {
+            if (team === 'home') {
+                return document.getElementById('home-name').value || 'HOME';
+            } else if (team === 'away') {
+                return document.getElementById('away-name').value || 'AWAY';
+            }
+        }
+
+        // ฟังก์ชันสำหรับรีเซต Scoreboard ทั้งหมด
+        function resetScoreboard() {
+            // รีเซตคะแนน
+            homeScore = 0;
+            awayScore = 0;
+            homeSets = 0;
+            awaySets = 0;
+            // รีเซตชื่อทีม
+            document.getElementById('home-name').value = '';
+            document.getElementById('away-name').value = '';
+            // รีเซตการแสดงผล
+            document.getElementById('score-home').textContent = homeScore;
+            document.getElementById('score-away').textContent = awayScore;
+            document.getElementById('sets-home').textContent = homeSets;
+            document.getElementById('sets-away').textContent = awaySets;
+            document.getElementById('time').textContent = '00:00';
+            // หยุดการจับเวลา
+            resetTimer();
+        }
+    </script>
+</body>
+</html>
